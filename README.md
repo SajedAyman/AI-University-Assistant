@@ -1,0 +1,2 @@
+# AI-University-Assistant
+A Retrieval-Augmented Generation chatbot for university students.
