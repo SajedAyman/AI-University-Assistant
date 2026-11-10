@@ -1,5 +1,0 @@
-https://stackoverflow.com/questions/4894609/will-a-cpu-process-have-at-least-one-thread
-User Address Space Contains: 1-Data. 2-Code. 3,4-(Stack & Heap) are explained here -> https://www.youtube.com/watch?v=_8-ht2AKyH4
-https://engineering.purdue.edu/~smidkiff/ece563/slides/PThreads.pdf
-https://stackoverflow.com/questions/7518815/function-pointer-automatic-dereferencing
-https://unix.stackexchange.com/questions/87625/what-is-difference-between-user-space-and-kernel-space

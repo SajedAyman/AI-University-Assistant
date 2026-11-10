@@ -1,4 +1,0 @@
-https://www.geeksforgeeks.org/fork-system-call/
-https://www.geeksforgeeks.org/exit-status-child-process-linux/
-https://unix.stackexchange.com/questions/451975/any-issue-if-zombie-state-is-not-cleared
-https://totozhang.github.io/2016-01-16-linux-zombieprocess/
