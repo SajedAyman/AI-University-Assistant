@@ -1,0 +1,4 @@
+https://techaccess.in/2021/05/19/named-pipe-vs-un-named-pipe/
+https://howtodoinjava.com/java/multi-threading/concurrency-vs-parallelism/
+https://stackoverflow.com/questions/1050222/what-is-the-difference-between-concurrency-and-parallelism
+https://pubs.opengroup.org/onlinepubs/009604599/functions/pipe.html

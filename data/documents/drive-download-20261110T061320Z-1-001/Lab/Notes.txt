@@ -1,0 +1,6 @@
+1- Switch between sessions Type: (CTRL+ALT+F1)
+2- Installation command Type: (sudo apt-get install toolnamehere)
+OR Type: (sudo apt install toolnamehere)
+3- Adding new user to system Type: (sudo adduser Ahmed)
+
+
