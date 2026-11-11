@@ -1,21 +1,24 @@
+from functools import lru_cache
 from pathlib import Path
 
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
-from functools import lru_cache
 
 
-# مكان المشروع الرئيسي ومكان قاعدة البيانات
+# Project root folder and the vector database folder
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_FOLDER = BASE_DIR / "data" / "chroma_db"
 
-# لازم يكون نفس الموديل اللي استخدمه ingest.py
+# Must be the same embedding model that ingest.py used
 EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
 
 
 @lru_cache(maxsize=1)
 def get_vector_db():
-    """يفتح قاعدة البيانات الموجودة (من غير ما يعيد بناءها)."""
+    """Open the existing vector database (without rebuilding it).
+
+    The result is cached, so the embedding model is loaded only once.
+    """
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
 
     return Chroma(
@@ -25,12 +28,16 @@ def get_vector_db():
 
 
 def retrieve_chunks(question, k=4):
-    """يرجّع أقرب k chunks للسؤال مع درجة المسافة لكل واحد."""
+    """Return the k closest chunks to the question, each with its distance score.
+
+    A smaller distance means the chunk is closer in meaning to the question.
+    """
     db = get_vector_db()
     return db.similarity_search_with_score(question, k=k)
 
 
 def main():
+    """Simple command-line test for the retrieval step (no LLM involved)."""
     question = input("Ask a question: ")
 
     results = retrieve_chunks(question)
@@ -38,7 +45,7 @@ def main():
     for i, (doc, score) in enumerate(results, start=1):
         print(f"\n--- Result {i} (distance: {score:.3f}) ---")
         print("Document:", doc.metadata.get("document_name"))
-        print("Page:", doc.metadata.get("page", 0) + 1)
+        print("Page:", doc.metadata.get("page", 0) + 1)  # PyPDF pages start at 0
         print(doc.page_content[:500])
 
 

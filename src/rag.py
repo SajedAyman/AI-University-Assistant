@@ -7,13 +7,16 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 from retrieve import retrieve_chunks
 
+# Load GOOGLE_API_KEY and GEMINI_MODEL from the .env file
 load_dotenv()
 
+# Fixed reply used when the answer is not in the course materials
 NOT_FOUND_MESSAGE = "I could not find this in the course materials."
 
-# chunks أقصر من كده غالباً عناوين slides من غير شرح
+# Chunks shorter than this are usually slide titles with no explanation
 MIN_CHUNK_CHARS = 80
 
+# Prompt template: forces the model to answer only from the retrieved context
 PROMPT = ChatPromptTemplate.from_messages([
     (
         "system",
@@ -30,15 +33,16 @@ PROMPT = ChatPromptTemplate.from_messages([
 
 @lru_cache(maxsize=1)
 def get_llm():
+    """Create the Gemini client once and reuse it for every question."""
     return ChatGoogleGenerativeAI(
         model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
         google_api_key=os.getenv("GOOGLE_API_KEY"),
-        temperature=0,
+        temperature=0,  # deterministic answers, less invention
     )
 
 
 def message_to_text(message):
-    """يطلّع النص الصافي من رد الموديل (ممكن يكون string أو قايمة blocks)."""
+    """Extract plain text from the model reply (it can be a string or a list of blocks)."""
     content = message.content
 
     if isinstance(content, str):
@@ -55,7 +59,8 @@ def message_to_text(message):
 
 
 def get_relevant_chunks(question, k=4):
-    """يجيب أقرب chunks للسؤال، ويستبعد العناوين القصيرة."""
+    """Fetch the closest chunks to the question and drop short title-only chunks."""
+    # Ask for extra chunks so that k remain after filtering
     results = retrieve_chunks(question, k=k + 4)
 
     chunks = [
@@ -68,17 +73,19 @@ def get_relevant_chunks(question, k=4):
 
 
 def format_context(chunks):
+    """Join the chunks into one context string, each labeled with its source."""
     parts = []
 
     for doc in chunks:
         name = doc.metadata.get("document_name", "unknown")
-        page = doc.metadata.get("page", 0) + 1
+        page = doc.metadata.get("page", 0) + 1  # PyPDF pages start at 0
         parts.append(f"[Source: {name}, page {page}]\n{doc.page_content}")
 
     return "\n\n".join(parts)
 
 
 def collect_sources(chunks):
+    """Build a list of unique (document, page) sources from the chunks."""
     sources = []
     seen = set()
 
@@ -94,21 +101,24 @@ def collect_sources(chunks):
 
 
 def answer_question(question):
-    """الدالة الرئيسية: بترجّع {"answer": ..., "sources": [...]}"""
+    """Main function: returns {"answer": ..., "sources": [...]}."""
     chunks = get_relevant_chunks(question)
 
+    # Nothing useful was retrieved
     if not chunks:
         return {"answer": NOT_FOUND_MESSAGE, "sources": []}
 
+    # Augmentation: combine the retrieved context and the question into one prompt
     prompt_value = PROMPT.invoke({
         "context": format_context(chunks),
         "question": question,
     })
 
+    # Generation: send the prompt to the LLM
     response = get_llm().invoke(prompt_value)
     answer = message_to_text(response)
 
-    # لو الموديل قال إنه ملقاش الإجابة، منعرضش مصادر
+    # If the model could not find the answer, do not show sources
     if answer == NOT_FOUND_MESSAGE:
         return {"answer": answer, "sources": []}
 
@@ -116,6 +126,7 @@ def answer_question(question):
 
 
 def main():
+    """Simple command-line chat loop."""
     print("OS Study Assistant (type 'exit' to quit)")
 
     while True:

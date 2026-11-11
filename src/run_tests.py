@@ -8,14 +8,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 QUESTIONS_FILE = BASE_DIR / "data" / "test_questions.csv"
 RESULTS_FILE = BASE_DIR / "data" / "test_results.csv"
 
-# الـ free tier بيحدد عدد الطلبات في الدقيقة، فبنستنى بين كل سؤال
+# The free tier limits requests per minute, so we wait between questions
 DELAY_SECONDS = 15
 MAX_RETRIES = 3
 
+# Columns of the results file
 FIELDS = ["id", "category", "question", "answer", "sources"]
 
 
 def ask_with_retry(question):
+    """Ask one question; retry a few times if the request fails (e.g. rate limit)."""
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             return answer_question(question)
@@ -26,7 +28,9 @@ def ask_with_retry(question):
 
     return {"answer": "ERROR: request failed", "sources": []}
 
+
 def load_questions():
+    """Read the test questions, ignoring blank lines and normalizing column names."""
     with open(QUESTIONS_FILE, newline="", encoding="utf-8-sig") as f:
         lines = [line for line in f if line.strip()]
 
@@ -35,11 +39,14 @@ def load_questions():
 
     return list(reader)
 
+
 def main():
+    """Run every test question and save the answers and sources to a CSV file."""
     questions = load_questions()
 
     print(f"Loaded {len(questions)} questions.\n")
 
+    # Note: this overwrites any existing test_results.csv
     with open(RESULTS_FILE, "w", newline="", encoding="utf-8-sig") as out:
         writer = csv.DictWriter(out, fieldnames=FIELDS)
         writer.writeheader()
@@ -61,8 +68,9 @@ def main():
                 "answer": result["answer"],
                 "sources": sources,
             })
-            out.flush()
+            out.flush()  # save after every question, so nothing is lost if it stops
 
+            # No need to wait after the last question
             if i < len(questions):
                 time.sleep(DELAY_SECONDS)
 
