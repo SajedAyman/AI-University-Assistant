@@ -1,0 +1,88 @@
+﻿id,category,question,answer,sources
+1,Fundamentals,What is an Operating System?,"Based on the provided materials, an Operating System (OS) is:
+
+* A program that controls the execution of application programs.
+* An interface between applications and the computer hardware.
+* A system that exploits the hardware resources of one or more processors to provide services to users, while managing main memory, secondary memory, and I/O devices on their behalf.
+
+It has three main objectives:
+1. **Convenience:** Makes a computer easier to use.
+2. **Efficiency:** Allows computer system resources to be used efficiently.
+3. **Ability to evolve:** Permits the effective development, testing, and introduction of new system functions.",doc_02.pdf p.6; doc_10.pdf p.1; doc_05.pdf p.3; doc_04.pdf p.17
+2,Fundamentals,What are the main functions of an Operating System?,"Based on the course materials, the main functions of an Operating System (OS) include:
+
+* **Controlling program execution:** Controls the execution of application programs and loads data and instructions into main memory.
+* **Acting as an interface:** Serves as an interface between applications and the computer hardware.
+* **Managing hardware resources:** Exploits processor hardware resources to provide services, and manages main memory, secondary memory, and I/O devices on behalf of users.
+* **Providing system services:**
+  * **Program development:** Provides tools such as editors and debuggers.
+  * **Access to I/O devices:** Hides device-specific details by providing a uniform interface using simple reads and writes.
+  * **Controlled access to files:** Implements protection mechanisms to control access to files in multi-user systems.
+  * **System access:** Protects resources and data from unauthorized users.
+  * **Error detection and response:** Responds to and clears error conditions with minimal impact on running applications.",doc_02.pdf p.6; doc_02.pdf p.8; doc_05.pdf p.4; doc_04.pdf p.17
+3,Fundamentals,What is the difference between a kernel and a shell?,I could not find this in the course materials.,
+4,Fundamentals,What are the different types of Operating Systems?,I could not find this in the course materials.,
+5,Fundamentals,What is a system call and why is it used?,"Based on the provided materials:
+
+**What is a system call?**
+A system call is a mechanism that provides the interface between a program and the Operating System (OS). It offers the services of the OS to user programs through an Application Programming Interface (API) by allowing a program to request specific OS services.
+
+**Why is it used?**
+System calls are required in several situations, including:
+1. Creating or deleting a file in a file system.
+2. Reading or writing a file.
+3. Sending and receiving data packets for network connections.
+4. Accessing hardware devices (such as a printer or scanner).
+5. Creating and managing new processes.",doc_05.pdf p.57; doc_05.pdf p.60; doc_05.pdf p.59
+6,Process Management,What is a process?,"Based on the course materials, a **process** is defined as:
+
+* A program in execution (or an instance of a program running on a computer).
+* A task.
+* The entity that can be assigned to and executed on a processor.
+* A unit of activity characterized by a single sequential thread of execution, a current state, and an associated set of system resources.
+
+A process consists of three main components:
+1. **An executable program**
+2. **Associated data** needed by the program (such as variables, work space, buffers, etc.)
+3. **Execution context / process state**, which includes all the information the operating system needs to manage the process and that the processor needs to execute it properly (e.g., register contents, priority, and I/O status).",doc_02.pdf p.21; doc_17.PDF p.3; doc_11.pdf p.2; doc_02.pdf p.22
+7,Process Management,What information is stored in a Process Control Block?,"Based on the course materials, the information stored in a Process Control Block (PCB) is grouped into three main categories:
+
+1. **Process Identification:**
+   * **Identifier of this process** (which might be an index into the primary process table).
+   * **Identifier of the parent process** (the process that created this process).
+   * **User identifier** responsible for the job.
+
+2. **Processor State Information.**
+
+3. **Process Control Information:**
+   * **Memory Management:** Pointers to segment and/or page tables describing the virtual memory assigned to the process.
+   * **Resource Ownership and Utilization:** Resources controlled by the process (such as opened files) and utilization history of the processor or other resources (which may be needed by the scheduler).",doc_03.pdf p.17; doc_11.pdf p.34; doc_06.pdf p.53; doc_11.pdf p.43
+8,Process Management,What is the difference between FCFS and Round Robin scheduling?,I could not find this in the course materials.,
+9,Process Management,What is the difference between a process and a thread?,"Based on the provided materials, the key differences between a process and a thread are:
+
+* **Definition:** A process is any program in execution, whereas a thread is a segment of a process (a line of execution/sequential flow of tasks within a process).
+* **Weight & Resource Consumption:** A process is a heavyweight entity that consumes more resources, while a thread is a lightweight entity that consumes fewer resources.
+* **Time Overhead:** Processes require more time for creation, termination, and context switching, whereas threads require less time for these operations.
+* **Control Blocks and Memory Space:** 
+  * A **process** has its own Process Control Block (PCB), stack, and address space.
+  * A **thread** has its parent's PCB, its own Thread Control Block (TCB) and stack, and shares a common address space with other threads in the process.
+* **Data Sharing:** Processes do not share data (they have independent data and code segments), whereas threads share data, code segments, and files with their peer threads in the same process.",doc_07.pdf p.21; doc_12.pdf p.21; doc_07.pdf p.8; doc_07.pdf p.12
+10,Process Management,What is Inter-Process Communication?,"Based on the provided materials, **interprocess communication** involves communication between two independent processes, which may be associated with various flags, signals, and messages (some or all of this information may be maintained in the process control block). 
+
+Additionally, the context notes that:
+* It occurs when processes are directly aware of each other and cooperate to work jointly on an activity by communicating (such as by process IDs).
+* Messages are passed, meaning mutual exclusion is not a control requirement.
+* It can lead to potential deadlock (e.g., each process waiting for a message from the other) or starvation (e.g., two processes sending messages to each other while a third waits for a message).",doc_08.pdf p.17; doc_13.pdf p.11; doc_13.pdf p.15; doc_06.pdf p.62
+11,Memory Management,What is memory management?,"Based on the provided materials, **memory management** is:
+
+* **Subdividing memory** to accommodate multiple processes.
+* **Allocating memory efficiently** to pack as many processes into memory as possible.
+
+It involves five key requirements:
+1. Relocation
+2. Protection
+3. Sharing
+4. Logical organization
+5. Physical organization
+
+*(Additionally, in process management, it includes pointers to segment and/or page tables that describe the virtual memory assigned to a process.)*",doc_14.pdf p.3; doc_02.pdf p.27; doc_06.pdf p.63; doc_14.pdf p.7
