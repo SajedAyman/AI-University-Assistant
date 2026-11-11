@@ -1,6 +1,6 @@
 # OS Study Assistant
 
-A Retrieval-Augmented Generation (RAG) chatbot for university students studying Operating Systems. It searches the project's course PDFs and asks Gemini to answer using the retrieved passages.
+A Retrieval-Augmented Generation (RAG) chatbot for university students studying Operating Systems. It searches the project's course PDFs and asks Groq to answer using the retrieved passages.
 
 The Streamlit interface accepts a question, displays the answer, and lists retrieved source documents with PDF page numbers. If the retrieved context cannot answer a question, the prompt instructs the model to reply:
 
@@ -12,7 +12,7 @@ The Streamlit interface accepts a question, displays the answer, and lists retri
 - LangChain for document processing and RAG orchestration
 - ChromaDB for local vector storage
 - Sentence Transformers: `sentence-transformers/all-MiniLM-L6-v2`
-- Gemini API for answer generation
+- Groq API for answer generation
 - Streamlit for the web interface
 
 ## How it works
@@ -21,7 +21,7 @@ The Streamlit interface accepts a question, displays the answer, and lists retri
 2. Split their text into chunks of 800 characters with 150 characters of overlap.
 3. Generate embeddings and store them in `data/chroma_db/`.
 4. For each question, retrieve relevant chunks and filter out short, title-only passages.
-5. Send up to four remaining chunks and the question to Gemini.
+5. Send up to four remaining chunks and the question to Groq.
 6. Display the answer and unique document/page sources, or the fallback response.
 
 Source page numbers are PDF page positions starting at 1. They may differ from printed page or slide labels. Listed sources identify the retrieved passages; they are not a guarantee that every statement is correct.
@@ -37,7 +37,7 @@ Source page numbers are PDF page positions starting at 1. They may differ from p
 | `data/chroma_db/` | Generated local vector database; ignored by Git |
 | `src/ingest.py` | PDF loading, chunking, embedding, and indexing |
 | `src/retrieve.py` | Similarity search against ChromaDB |
-| `src/rag.py` | Prompt construction, Gemini generation, and source collection |
+| `src/rag.py` | Prompt construction, Groq generation, and source collection |
 | `src/app.py` | Streamlit question-and-answer interface |
 | `src/run_tests.py` | Batch evaluation runner |
 | `.env.example` | API configuration template |
@@ -70,9 +70,9 @@ py -3.12 -m venv venv
 
 These commands use the virtual environment directly; PowerShell activation is optional.
 
-### 3. Configure Gemini
+### 3. Configure Groq
 
-Create or view an API key in [Google AI Studio](https://aistudio.google.com/apikey).
+Create an API key in the [Groq console](https://console.groq.com/keys).
 
 Copy the template once:
 
@@ -83,11 +83,11 @@ Copy-Item .env.example .env
 Open `.env`, replace the API key placeholder, and save:
 
 ```dotenv
-GOOGLE_API_KEY=your_api_key_here
-GEMINI_MODEL=gemini-3.8-flash
+GROQ_API_KEY=your_api_key_here
+GROQ_MODEL=openai/gpt-oss-20b
 ```
 
-Keep the configured model consistent with the backend. Model access and API quotas depend on your account.
+The default model is `openai/gpt-oss-20b` hosted by Groq, with low reasoning effort. API requests have a 45-second timeout and automatic retries disabled, so an unavailable service does not silently retry for several minutes. Free-plan request and token limits depend on your account; check the Groq console for current limits. Restart the app after changing `.env`; rerun the evaluation questions when changing models or providers.
 
 Never commit `.env` or put a real key in `.env.example`. The repository ignores `.env`, `venv/`, and `data/chroma_db/`. Each teammate supplies their own API key and builds their own database.
 
@@ -111,7 +111,7 @@ Run ingestion when setting up a new machine or after changing documents or index
 
 Open the Local URL printed in the terminal, normally [http://localhost:8501](http://localhost:8501).
 
-Enter an OS question and click **Ask**. The app shows a loading indicator, the answer, and sources when available. Empty input displays a warning; failed requests display a helpful error message. Press `Ctrl+C` in the terminal to stop the server.
+The app first prepares the local search model once per server process. It uses the model files already downloaded during ingestion, without contacting Hugging Face. When the question form appears, enter an OS question and click **Ask**. The app shows the current stage, elapsed loading time, the answer, and sources when available. Empty input displays a warning; failed requests display a helpful error message. Press `Ctrl+C` in the terminal to stop the server.
 
 Example questions:
 
@@ -149,10 +149,11 @@ Before handoff, check an in-scope OS question, an unrelated question, and empty 
 
 - **No suitable Python runtime:** install Python 3.12, restart VS Code, and retry `py -3.12 --version`.
 - **No space left on device:** free disk space, then rerun the dependency installation command. Pip retains successfully installed packages.
-- **Slow first question:** the app needs to load the embedding model into its process. Later requests reuse the cached model, but network latency, memory pressure, API retries, and quotas can still affect response time.
+- **Slow startup:** importing the embedding libraries and loading the cached model can take time on a low-memory machine. This happens once per server process, before the question form appears. Later questions reuse the model. The terminal prints separate retrieval and Groq request timings.
+- **Groq is busy (503):** the configured model is experiencing high demand. Retry shortly or select another available Groq model in `.env` and restart the server. The app does not repeatedly retry an overloaded model in the background.
 - **Hugging Face unauthenticated warning:** the model can be downloaded without a token; this warning alone does not mean the request failed.
 - **No documents or useful results:** confirm the PDFs exist in `data/documents/` and ingestion completed successfully.
-- **Answer generation fails:** check your internet connection, `GOOGLE_API_KEY`, model access, and API quota. The interface deliberately shows a general error message.
+- **Answer generation fails:** check your internet connection, `GROQ_API_KEY`, model access, and API quota. The interface deliberately shows a general error message.
 - **Unexpected answer or fallback:** inspect the retrieved pages and record the case for evaluation. A grounding prompt reduces unsupported answers but does not eliminate them.
 
 ## License

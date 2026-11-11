@@ -1,13 +1,14 @@
 import os
 from functools import lru_cache
+from time import perf_counter
 
 from dotenv import load_dotenv
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_groq import ChatGroq
 
 from retrieve import retrieve_chunks
 
-# Load GOOGLE_API_KEY and GEMINI_MODEL from the .env file
+# Load GROQ_API_KEY and GROQ_MODEL from the .env file
 load_dotenv()
 
 # Fixed reply used when the answer is not in the course materials
@@ -33,11 +34,14 @@ PROMPT = ChatPromptTemplate.from_messages([
 
 @lru_cache(maxsize=1)
 def get_llm():
-    """Create the Gemini client once and reuse it for every question."""
-    return ChatGoogleGenerativeAI(
-        model=os.getenv("GEMINI_MODEL", "gemini-3.8-flash"),
-        google_api_key=os.getenv("GOOGLE_API_KEY"),
-        temperature=0,  # deterministic answers, less invention
+    """Create the Groq client once and reuse it."""
+    return ChatGroq(
+        model=os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
+        api_key=os.getenv("GROQ_API_KEY"),
+        temperature=0,
+        reasoning_effort="low",
+        timeout=45,
+        max_retries=0,
     )
 
 
@@ -100,9 +104,13 @@ def collect_sources(chunks):
     return sources
 
 
-def answer_question(question):
-    """Main function: returns {"answer": ..., "sources": [...]}."""
+def answer_question(question, on_progress=None):
+    """Return answer and sources; optionally report the current stage to the UI."""
+    if on_progress:
+        on_progress("Searching the course PDFs...")
+    started = perf_counter()
     chunks = get_relevant_chunks(question)
+    print(f"[RAG] Retrieval: {perf_counter() - started:.2f}s", flush=True)
 
     # Nothing useful was retrieved
     if not chunks:
@@ -114,8 +122,14 @@ def answer_question(question):
         "question": question,
     })
 
-    # Generation: send the prompt to the LLM
-    response = get_llm().invoke(prompt_value)
+    # Generation: send the prompt to the LLM.
+    if on_progress:
+        on_progress("Generating an answer from the retrieved passages...")
+    started = perf_counter()
+    try:
+        response = get_llm().invoke(prompt_value)
+    finally:
+        print(f"[RAG] LLM request: {perf_counter() - started:.2f}s", flush=True)
     answer = message_to_text(response)
 
     # If the model could not find the answer, do not show sources

@@ -19,7 +19,14 @@ def get_vector_db():
 
     The result is cached, so the embedding model is loaded only once.
     """
-    embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+    # Ingestion already downloaded this model. Avoid Hub checks on startup.
+    if not (DB_FOLDER / "chroma.sqlite3").exists():
+        raise FileNotFoundError("Run python src/ingest.py before starting the app.")
+
+    embeddings = HuggingFaceEmbeddings(
+        model_name=EMBEDDING_MODEL,
+        model_kwargs={"local_files_only": True},
+    )
 
     return Chroma(
         persist_directory=str(DB_FOLDER),
